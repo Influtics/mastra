@@ -12,12 +12,12 @@
   "dependencies": {
     "@mastra/claude": "^0.3.0",
     "@mastra/core": "^1.63.2",
-    "@mastra/libsql": "^1.22.2"
-  },
-  "devDependencies": {
-    "@types/node": "^26.4.0",
+    "@mastra/libsql": "^1.22.2",
     "mastra": "^1.27.2",
     "tsx": "^4.23.12",
     "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0"
   }
 }
