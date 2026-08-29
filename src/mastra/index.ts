@@ -1,7 +1,8 @@
 // src/mastra/index.ts
 //
-// Mastra instance — wires the Claude SDK hello-agent, libsql storage, and a
-// SimpleAuth-backed HTTP server. Verified against the actual installed API:
+// Mastra instance — wires the Claude SDK hello-agent, local libSQL storage,
+// and a SimpleAuth-backed HTTP server. Verified against the actual installed
+// API:
 //
 //   - `Mastra` is the ONLY export from `@mastra/core` (per
 //     `node_modules/@mastra/core/dist/index.d.ts`). `SimpleAuth` lives on the
@@ -16,9 +17,10 @@
 //   - `LibSQLStore` (from `@mastra/libsql/dist/storage/index.d.ts`) requires:
 //       { id: string, url: string, authToken?: string }
 //     `id` is required; `authToken` is optional for local `file:` URLs but
-//     required for remote `libsql://` Turso URLs. `disableInit: true` is set
-//     so the deployer doesn't auto-create tables on first use — the seed
-//     script (`scripts/seed-turso.ts`) is the single source of schema
+//     required for remote `libsql://` Turso URLs. We use a local file URL
+//     (see `MASTRA_DB_PATH` in `config.ts`) so no remote DB is involved.
+//     `disableInit: true` is set so the deployer doesn't auto-create tables
+//     on first use — `scripts/seed-db.ts` is the single source of schema
 //     bootstrapping.
 //
 //   - `SimpleAuth` (`@mastra/core/dist/server/simple-auth.d.ts`) takes a
@@ -54,10 +56,12 @@ const auth = new SimpleAuth<User>({
   },
 })
 
+// Local libSQL file. The parent directory is the Coolify persistent volume
+// mount at `/data` in production, or `.mastra/` (already gitignored) in dev.
+// No remote DB is involved — see `config.ts` for path resolution rules.
 const storage = new LibSQLStore({
   id: 'mastra-storage',
-  url: config.TURSO_DATABASE_URL,
-  authToken: config.TURSO_AUTH_TOKEN,
+  url: `file:${config.MASTRA_DB_PATH}`,
   disableInit: true,
 })
 

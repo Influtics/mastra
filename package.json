@@ -6,7 +6,7 @@
   "scripts": {
     "build": "mastra build",
     "start": "node .mastra/output/index.mjs",
-    "bootstrap": "node --import tsx/esm scripts/seed-turso.ts",
+    "bootstrap": "node --import tsx/esm scripts/seed-db.ts",
     "dev": "mastra dev"
   },
   "dependencies": {
