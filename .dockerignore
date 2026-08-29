@@ -1,0 +1,5 @@
+.git
+.mastra/output
+node_modules
+.env*
+*.log
