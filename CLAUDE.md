@@ -14,13 +14,26 @@
 
 | Var | Source | Required | Notes |
 |-----|--------|----------|-------|
-| `ANTHROPIC_API_KEY` | Anthropic console | yes | read by the Claude Agent SDK subprocess |
-| `ANTHROPIC_MODEL` | static | no | defaults to `claude-sonnet-4-5-20251001` |
+| `ANTHROPIC_API_KEY` | Anthropic console (or compatible proxy token) | yes | read by the Claude Agent SDK subprocess |
+| `ANTHROPIC_MODEL` | static | no | defaults to `claude-sonnet-4-5-20251001`. Set to the model id your proxy serves when `ANTHROPIC_BASE_URL` is non-default |
+| `ANTHROPIC_BASE_URL` | static | no | override the Claude API endpoint. Read natively by the Claude Agent SDK subprocess. Use this to point at an Anthropic-compatible proxy (e.g. `https://api.example.com/anthropic`). Leave unset to talk to `https://api.anthropic.com` directly |
 | `MASTRA_STUDIO_TOKEN` | generated `openssl rand -base64 32` | yes | SimpleAuth bearer token |
 | `MASTRA_DB_PATH` | static | no | defaults to `/data/mastra.db` (Coolify `/data` volume) or `.mastra/storage.db` (dev) |
 | `NODE_ENV` | static | no | set to `production` by Dockerfile — flips `MASTRA_DB_PATH` default |
 
 The libSQL file at `MASTRA_DB_PATH` survives container restarts because Coolify mounts a persistent volume at `/data`. No external database is involved.
+
+## Custom Anthropic-compatible endpoint (optional)
+
+If you're pointing at a third-party Anthropic-compatible API, set all three:
+
+```bash
+ANTHROPIC_API_KEY=<token-issued-by-the-proxy>     # NOT a real Anthropic key
+ANTHROPIC_BASE_URL=https://api.example.com/anthropic
+ANTHROPIC_MODEL=<model-id-the-proxy-serves>
+```
+
+The `claude` CLI subprocess reads `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` directly from `process.env` — `src/mastra/agents/hello-agent.ts` already spreads `...process.env` into the subprocess env, so no code changes are needed when swapping endpoints.
 
 ## Persistent volume
 
