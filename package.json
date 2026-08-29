@@ -1,0 +1,23 @@
+{
+  "name": "mastra-influtics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "mastra build",
+    "start": "node .mastra/output/index.mjs",
+    "bootstrap": "node --import tsx/esm scripts/seed-turso.ts",
+    "dev": "mastra dev"
+  },
+  "dependencies": {
+    "@mastra/claude": "^0.3.0",
+    "@mastra/core": "^1.63.2",
+    "@mastra/libsql": "^1.22.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "mastra": "^1.27.2",
+    "tsx": "^4.23.12",
+    "typescript": "^6.0.3"
+  }
+}
