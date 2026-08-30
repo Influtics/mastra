@@ -65,6 +65,18 @@
 //   - `port: 4111` is the Mastra default; we set it explicitly for clarity.
 //   - `host: '0.0.0.0'` lets the dev server be reached from outside the
 //     container (e.g. from a Coolify-served frontend).
+//   - The `studioHost` / `studioProtocol` / `studioPort` options decouple the
+//     bind host from the Studio client's API base URL. The dev server injects
+//     `MASTRA_SERVER_HOST` / `MASTRA_SERVER_PROTOCOL` / `MASTRA_SERVER_PORT`
+//     globals into the Studio SPA HTML — by default those mirror the bind
+//     `host`/`port`/protocol, which would point the browser at `0.0.0.0:4111`
+//     over HTTP, fail to resolve, and surface as the Studio "black screen"
+//     with `Unexpected token '<', "<!doctype "... is not valid JSON`. Behind
+//     the Coolify/Traefik TLS-terminating proxy, the public origin is
+//     `https://mastra.influtics.com`, so we set the three `studio*` options
+//     to match. See `@mastra/deployer/dist/server/index.js:4601-4603` and the
+//     CHANGELOG note for PR #14682 ("decouple the server bind configuration
+//     from the Studio API URL").
 
 import { Mastra } from '@mastra/core'
 import { SimpleAuth, type User } from '@mastra/core/auth'
@@ -132,6 +144,14 @@ export const mastra = new Mastra({
   server: {
     port: 4111,
     host: '0.0.0.0',
+    // Studio API base URL — public origin behind the Coolify/Traefik TLS proxy.
+    // Without these, the Studio SPA's `MASTRA_SERVER_HOST` etc. inherit the
+    // bind host (`0.0.0.0`) and the browser tries `http://0.0.0.0:4111/api`,
+    // fails to resolve, and renders the "black screen" with the
+    // `<!doctype … is not valid JSON` error. See header comment.
+    studioHost: 'mastra.influtics.com',
+    studioProtocol: 'https',
+    studioPort: 443,
     auth,
     apiRoutes: [
       // Claude SDK session resume. The built-in
