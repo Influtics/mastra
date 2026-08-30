@@ -52,7 +52,14 @@
 //     `mastra.getAgent('hello-agent').resumeGenerate(...)`). The built-in
 //     `/api/agents/:id/resume-stream` route is runId-based (Mastra Memory
 //     model) — different from the sessionId/`continue` model the Claude SDK
-//     uses, so we mount our own.
+//     uses, so we mount our own. The custom path MUST NOT start with `/api/`
+//     because Mastra's `MastraServer.validateCustomRoutePaths` (verified in
+//     `.mastra/output/index.mjs:44977-44982`) reserves `apiPrefix` (= `/api`
+//     in dev/prod) for built-in routes — a `/api/agents/hello-agent/continue`
+//     path throws `Custom API route "/api/..." must not start with "/api" —
+//     that path is reserved for built-in Mastra routes` and the server
+//     crashes at startup (caught post-merge: container exited before serving
+//     a single request). Use `/custom/...` instead.
 //
 // Server notes:
 //   - `port: 4111` is the Mastra default; we set it explicitly for clarity.
@@ -129,14 +136,18 @@ export const mastra = new Mastra({
     apiRoutes: [
       // Claude SDK session resume. The built-in
       // `/api/agents/:agentId/resume-stream` route is runId-based (Mastra
-      // Memory model). Claude SDK sessions are a different beast: they live
-      // at `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl` and are
-      // resumed by `sessionId` or by `continue: true` (latest session for
-      // cwd). This route wraps `agent.resumeGenerate({ message, continue:
-      // true })` so callers can keep a conversation going across calls
-      // without managing sessionIds themselves.
+      // Memory model) — that's a reserved `/api/*` path and we can't shadow
+      // it. Claude SDK sessions are a different beast: they live at
+      // `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl` and are resumed
+      // by `sessionId` or by `continue: true` (latest session for cwd). This
+      // route wraps `agent.resumeGenerate({ message, continue: true })` so
+      // callers can keep a conversation going across calls without managing
+      // sessionIds themselves. The path is intentionally under `/custom/...`
+      // (NOT `/api/...`) because `MastraServer.validateCustomRoutePaths`
+      // throws if a custom route's path starts with the reserved `apiPrefix`
+      // — see the header comment above for the exact error.
       {
-        path: '/api/agents/hello-agent/continue',
+        path: '/custom/agents/hello-agent/continue',
         method: 'POST',
         requiresAuth: true,
         createHandler: async ({ mastra }) => {
