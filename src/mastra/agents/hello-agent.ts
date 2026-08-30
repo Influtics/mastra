@@ -45,10 +45,19 @@ export const helloAgent = new ClaudeSDKAgent({
     systemPrompt:
       'You are a friendly assistant for the Influtics Mastra integration. ' +
       'Greet the user, briefly explain what you can help with, and ask how you can assist.',
-    cwd: process.cwd(),
+    // The Claude SDK uses `cwd` as the project key under which it persists
+    // session files at `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl`.
+    // Pinning cwd to a stable, persistent directory (MASTRA_AGENT_CWD,
+    // default /data/sessions/hello-agent) means a fresh container can resume
+    // sessions a previous one started — the encoded project key is the same.
+    cwd: config.MASTRA_AGENT_CWD,
     env: {
       ...process.env,
       CLAUDE_AGENT_SDK_CLIENT_APP: 'mastra-influtics/0.1.0',
+      // Override HOME so the SDK writes ~/.claude/projects/... under /data
+      // (the Coolify volume mount). Without this, sessions land in the
+      // container's ephemeral /home and are lost on every restart.
+      HOME: config.MASTRA_CLAUDE_HOME,
     },
   },
 })
