@@ -15,6 +15,14 @@ echo "[entrypoint] bootstrapping local libSQL schema at ${MASTRA_DB_PATH:-/data/
 mkdir -p "$(dirname "${MASTRA_DB_PATH:-/data/mastra.db}")"
 node --import tsx/esm scripts/seed-db.ts
 
+# Prepare persistent Claude session dirs on the /data volume so sessions
+# survive container restarts. The Claude Agent SDK writes session files to
+# `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl` (HOME is
+# MASTRA_CLAUDE_HOME, cwd is MASTRA_AGENT_CWD). These two dirs MUST exist
+# and be writable by the running user BEFORE the subprocess spawns.
+mkdir -p "${MASTRA_CLAUDE_HOME:-/data}/.claude/projects" "${MASTRA_AGENT_CWD:-/data/sessions/hello-agent}"
+echo "[entrypoint] Claude session dirs ready: HOME=${MASTRA_CLAUDE_HOME:-/data} cwd=${MASTRA_AGENT_CWD:-/data/sessions/hello-agent}"
+
 echo "[entrypoint] starting Mastra (dev server — ships Studio)..."
 # mastra dev mounts the Studio SPA at the studioBase path (default `/`) and
 # runs the same Mastra instance the prod build would. We use it in the Coolify
